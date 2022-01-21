@@ -1,0 +1,8 @@
+name = "QuantumOperators"
+uuid = "9648483b-397d-49d9-b197-985d5e096e70"
+authors = ["Goran Nakerst <go.nakerst@web.de>"]
+version = "0.1.0"
+
+[deps]
+QuantumBases = "6a474148-d581-4e0a-935c-0ecefba9a140"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
