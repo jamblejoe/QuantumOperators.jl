@@ -1,13 +1,13 @@
 
 """
-c_i^\dagger c_i
+c_i^dagger c_i
 """
 struct FermiNumberOperator <: AbstractOperator
     i::Int
 end
 
 """
-c_i^\dagger c_j
+c_i^dagger c_j
 
 """
 struct FermiHoppingOperator <: AbstractOperator

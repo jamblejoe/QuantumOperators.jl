@@ -11,7 +11,7 @@ Pauli matrices
 |1> = [1, 0]'
 """
 
-abstract type AbstractOperator end
+
 struct SingleBodyOperator{T} <: AbstractOperator 
     site::Int
 end
@@ -122,7 +122,7 @@ end
 
 
 
-
+#=
 function spmatrix(op::AbstractOperator, basis::AbstractBasis, T::Type=Float64)
     spmatrix(op, basis, basis, T)
 end
@@ -166,6 +166,7 @@ function spmatrix(op::AbstractOperator,
 
     return spm
 end
+=#
 
 ####################################################################
 #
