@@ -110,7 +110,7 @@ function apply!(state::BitVector, op::TwoBodyOperator{:∓}, T::Type=Float64)
     site2 = op.site2
 
     if site1 == site2
-        return state[site] ? zero(T) : one(T)
+        return state[site1] ? zero(T) : one(T)
     else
         # returns true if and only if site 1 is occupied and site 2 is empty
         s = state[site1] && !state[site2]
