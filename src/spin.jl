@@ -73,7 +73,7 @@ end
 
 spmatrix(::SingleBodyOperator{:X}, T::Type=Float64) = sparse([zero(T) one(T); one(T) zero(T)])
 spmatrix(::SingleBodyOperator{:Y}, T::Type=ComplexF64) = sparse([zero(T) -im; im zero(T)])
-spmatrix(::SingleBodyOperator{:Z}, T::Type=Float64) = sparse([one(T) zero(T); zero(T) one(T)])
+spmatrix(::SingleBodyOperator{:Z}, T::Type=Float64) = sparse([one(T) zero(T); zero(T) -one(T)])
 spmatrix(::SingleBodyOperator{:+}, T::Type=Float64) = sparse([zero(T) one(T); zero(T) zero(T)])
 spmatrix(::SingleBodyOperator{:-}, T::Type=Float64) = sparse([zero(T) zero(T); one(T) zero(T)])
 

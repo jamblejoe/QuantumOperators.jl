@@ -1,3 +1,16 @@
+@testset "Pauli matrices" begin
+    @test spmatrix(SigmaX(1)) == [0 1; 1 0]
+    @test spmatrix(SigmaY(1)) == [0 -im; im 0]
+    @test spmatrix(SigmaZ(1)) == [1 0; 0 -1]
+    @test spmatrix(SigmaPlus(1)) == [0 1; 0 0]
+    @test spmatrix(SigmaMinus(1)) == [0 0; 1 0]
+
+    @test spmatrix(SigmaPlus(1)) == 1/2 * (spmatrix(SigmaX(1)) + im * spmatrix(SigmaY(1)))
+    @test spmatrix(SigmaMinus(1)) == 1/2 * (spmatrix(SigmaX(1)) - im * spmatrix(SigmaY(1)))
+
+end
+
+
 @testset "SigmaPlusMinus" begin
 
     @testset "NumberConservedBasis" begin
