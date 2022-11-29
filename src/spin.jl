@@ -77,21 +77,27 @@ spmatrix(::SingleBodyOperator{:Z}, T::Type=Float64) = sparse([one(T) zero(T); ze
 spmatrix(::SingleBodyOperator{:+}, T::Type=Float64) = sparse([zero(T) one(T); zero(T) zero(T)])
 spmatrix(::SingleBodyOperator{:-}, T::Type=Float64) = sparse([zero(T) zero(T); one(T) zero(T)])
 
-struct TwoBodyOperator{T} <: AbstractOperator 
-    site1::Int
-    site2::Int
+struct TwoBodyOperator{T1, T2} <: AbstractOperator 
+    op1::SingleBodyOperator{T1}
+    op2::SingleBodyOperator{T2}
 end
 
 # the order is important when i=j
 # σ_i^+ σ_j^-
-SigmaPlusMinus(i::Integer, j::Integer) = TwoBodyOperator{:±}(i,j)
+#SigmaPlusMinus(i::Integer, j::Integer) = TwoBodyOperator{:±}(i,j)
+SigmaPlusMinus(i::Integer, j::Integer) = TwoBodyOperator(SigmaPlus(i),SigmaMinus(j))
 # σ_i^- σ_j^+
-SigmaMinusPlus(i::Integer, j::Integer) = TwoBodyOperator{:∓}(i,j)
+#SigmaMinusPlus(i::Integer, j::Integer) = TwoBodyOperator{:∓}(i,j)
+SigmaMinusPlus(i::Integer, j::Integer) = TwoBodyOperator(SigmaMinus(i),SigmaPlus(j))
+
+SigmaXX(i::Integer, j::Integer) = TwoBodyOperator(SigmaX(i), SigmaX(j))
+SigmaYY(i::Integer, j::Integer) = TwoBodyOperator(SigmaY(i), SigmaY(j))
+SigmaZZ(i::Integer, j::Integer) = TwoBodyOperator(SigmaZ(i), SigmaZ(j))
 
 # create a spin at site 1 and annihilate a spin at site 2
-function apply!(state::BitVector, op::TwoBodyOperator{:±}, T::Type=Float64)
-    site1 = op.site1
-    site2 = op.site2
+function apply!(state::BitVector, op::TwoBodyOperator{:+, :-}, T::Type=Float64)
+    site1 = op.op1.site
+    site2 = op.op2.site
 
     if site1 == site2
         return state[site1] ? one(T) : zero(T)
@@ -105,9 +111,9 @@ function apply!(state::BitVector, op::TwoBodyOperator{:±}, T::Type=Float64)
 end
 
 # annihilate a spin at site 1 and create a spin at site 2
-function apply!(state::BitVector, op::TwoBodyOperator{:∓}, T::Type=Float64)
-    site1 = op.site1
-    site2 = op.site2
+function apply!(state::BitVector, op::TwoBodyOperator{:-,:+}, T::Type=Float64)
+    site1 = op.op1.site
+    site2 = op.op2.site
 
     if site1 == site2
         return state[site1] ? zero(T) : one(T)
@@ -120,7 +126,9 @@ function apply!(state::BitVector, op::TwoBodyOperator{:∓}, T::Type=Float64)
     end
 end
 
-
+struct SpinOperator
+    ops::Vector{SingleBodyOperator}
+end
 
 #=
 function spmatrix(op::AbstractOperator, basis::AbstractBasis, T::Type=Float64)
@@ -181,4 +189,37 @@ function spmatrix(op::SingleBodyOperator, basis::TensorBasis, T::Type=Float64)
 
     m = spmatrix(op, T)
     kron(I(2^(site_index-1)), m, I(2^(L-site_index)))
+    #kron(I(2^(L-site_index)), m, I(2^(site_index-1)))
 end
+
+
+function spmatrix(op::TwoBodyOperator, basis::TensorBasis, T::Type=Float64)
+    L = basis.L
+    op1 = op.op1
+    op2 = op.op2
+    site1 = op1.site
+    site2 = op2.site
+
+    1 <= site1 <= L || error("site1 must be in [1,$L], got $(site1)")
+    1 <= site2 <= L || error("site2 must be in [1,$L], got $(site2)")
+
+
+    m1 = spmatrix(op1, T)
+    m2 = spmatrix(op2, T)
+
+    M = nothing
+    if site1 < site2
+        M = kron(I(2^(site1-1)), m1, I(2^(site2-site1-1)), m2, I(2^(L-site2)))
+        #kron(I(2^(L-site2)), m2, I(2^(site2-site1-1)), m1, I(2^(site1-1)))
+    elseif site2 < site1
+        M = kron(I(2^(site2-1)), m2, I(2^(site1-site2-1)), m1, I(2^(L-site1)))
+        #kron(I(2^(L-site1)), m1, I(2^(site1-site2-1)), m2, I(2^(site2-1)))
+    else
+        # site1==site2
+        M = kron(I(2^(site1-1)), m1*m2, I(2^(L-site1)))
+        #kron(I(2^(L-site1)), m2*m1, I(2^(site1-1)))
+    end
+
+    return adjoint(M)
+end
+
