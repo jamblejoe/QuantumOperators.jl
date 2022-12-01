@@ -10,6 +10,7 @@ export spmatrix
 
 # Spins
 export SigmaX, SigmaY, SigmaZ, SigmaPlus, SigmaMinus
+export SigmaXX, SigmaYY, SigmaZZ
 export SigmaPlusMinus, SigmaMinusPlus
 
 # Spinless fermions
