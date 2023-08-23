@@ -7,8 +7,8 @@ Pauli matrices
 σ_+ = [0 1; 0 0] = 1/2 (σ_x + iσ_y)
 σ_- = [0 0; 1 0] = 1/2 (σ_x - iσ_y)
 
-|0> = [0, 1]'
-|1> = [1, 0]'
+|0> = [0, 1]' == spin down
+|1> = [1, 0]' == spin up
 """
 
 
@@ -126,10 +126,6 @@ function apply!(state::BitVector, op::TwoBodyOperator{:-,:+}, T::Type=Float64)
     end
 end
 
-struct SpinOperator
-    ops::Vector{SingleBodyOperator}
-end
-
 #=
 function spmatrix(op::AbstractOperator, basis::AbstractBasis, T::Type=Float64)
     spmatrix(op, basis, basis, T)
@@ -182,14 +178,15 @@ end
 #
 ####################################################################
 
+
 function spmatrix(op::SingleBodyOperator, basis::TensorBasis, T::Type=Float64)
     L = basis.L
     site_index = op.site
     1 <= site_index <= L || error("site must be in [1,$L], got $i")
 
     m = spmatrix(op, T)
-    kron(I(2^(site_index-1)), m, I(2^(L-site_index)))
-    #kron(I(2^(L-site_index)), m, I(2^(site_index-1)))
+    M = kron(I(2^(site_index-1)), m, I(2^(L-site_index)))
+    M
 end
 
 
@@ -220,6 +217,53 @@ function spmatrix(op::TwoBodyOperator, basis::TensorBasis, T::Type=Float64)
         #kron(I(2^(L-site1)), m2*m1, I(2^(site1-1)))
     end
 
-    return adjoint(M)
+    return M
 end
 
+
+####################################################################
+#
+# Algebra
+#
+####################################################################
+
+#=
+Pauli = SingleBodyOperator
+import Base.:*
+import Base.sort!
+
+struct SpinOperator{T<:Number}
+    phase::T
+    ops::Vector{SingleBodyOperator}
+end
+function SpinOperator(ops::Vararg{Pauli}; T::Type=ComplexF64)
+    SpinOperator(one(T), [ops...])
+end
+
+
+*(a::Pauli, b::Pauli) = SpinOperator(a, b)
+
+
+function sort!(op::SpinOperator)
+    sort!(op.ops, by=x->x.site)
+end
+
+
+function contract(op::SpinOperator)
+    sort!(op)
+    for i in 1:length(op.ops)
+    end
+end
+
+=#
+
+#### impl 2
+
+#=
+Pauli = SingleBodyOperator
+
+struct SpinOperator{T<:Number}
+    phase::T
+    ops::Vector{SingleBodyOperator}
+end
+=#

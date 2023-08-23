@@ -25,6 +25,7 @@ function spmatrix(op::AbstractOperator,
 
         #basis_element[site_index] = !basis_element[site_index]
         val = apply!(basis_element, op, T)
+        val == zero(T) && continue
 
         if basis_element in basis2
 
