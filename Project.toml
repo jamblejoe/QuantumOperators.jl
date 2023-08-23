@@ -1,10 +1,13 @@
 name = "QuantumOperators"
 uuid = "9648483b-397d-49d9-b197-985d5e096e70"
 authors = ["Goran Nakerst <go.nakerst@web.de>"]
-version = "0.6.1"
+version = "0.7.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 QuantumBases = "6a474148-d581-4e0a-935c-0ecefba9a140"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[compat]
+QuantumBases = "0.4"
