@@ -16,6 +16,7 @@ export SigmaPlusMinus, SigmaMinusPlus
 # Spinless fermions
 export FermiCreationOperator, FermiAnnihilationOperator
 export FermiNumberOperator, FermiHoppingOperator
+export ParityOperator
 
 include("abstract.jl")
 include("spin.jl")

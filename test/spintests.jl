@@ -1,3 +1,5 @@
+@testset "Spin operators" begin
+
 @testset "Pauli matrices" begin
     @test spmatrix(SigmaX(1)) == [0 1; 1 0]
     @test spmatrix(SigmaY(1)) == [0 -im; im 0]
@@ -112,6 +114,13 @@ end
 @testset "Adjoint of operators" begin
 
     @testset "SigmaPlusMinus" begin
+        @testset "TensorBasis($L)" for L in [3,4,5]
+            b = AscendingTwoLevelBasis(L)
+            @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
+                @test spmatrix(SigmaPlusMinus(i,j),b, Int) == adjoint(spmatrix(SigmaPlusMinus(j,i),b, Int))
+            end
+        end
+
         @testset "AscendingTwoLevelBasis($L)" for L in [3,4,5]
             b = AscendingTwoLevelBasis(L)
             @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
@@ -145,4 +154,6 @@ end
         end
     end
     
+end
+
 end
