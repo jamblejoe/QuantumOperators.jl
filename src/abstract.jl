@@ -1,12 +1,14 @@
-abstract type AbstractOperator end
+abstract type AbstractOperator{vT} end
 
-function spmatrix(op::AbstractOperator, basis::AbstractBasis, T::Type=Float64)
-    spmatrix(op, basis, basis, T)
+Base.eltype(::AbstractOperator{vT}) where {vT} = vT
+
+
+function spmatrix(op::AbstractOperator, basis::AbstractBasis)
+    spmatrix(op, basis, basis)
 end
 
-function spmatrix(op::AbstractOperator, 
-    basis1::AbstractBasis, basis2::AbstractBasis,
-    T::Type=Float64)
+function spmatrix(op::AbstractOperator{vT}, 
+    basis1::AbstractBasis, basis2::AbstractBasis) where {vT}
 
     basis1.L == basis2.L || error("basis1 and basis2 must have same number of sites. Got $(basis1.L) and $(basis2.L)")
     L = basis1.L
@@ -18,14 +20,14 @@ function spmatrix(op::AbstractOperator,
 
     rows = Int[]
     cols = Int[]
-    values = T[]
+    values = vT[]
 
     for i in eachindex(basis1)
         getstate!(basis_element, basis1, i)
 
         #basis_element[site_index] = !basis_element[site_index]
-        val = apply!(basis_element, op, T)
-        val == zero(T) && continue
+        val = apply!(basis_element, op)
+        iszero(val) && continue
 
         if basis_element in basis2
 

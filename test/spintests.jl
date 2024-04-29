@@ -27,8 +27,8 @@ end
         
         basis =  TensorBasis(4)
         for i in 1:3
-            M1 = spmatrix(SigmaPlusMinus(i,i+1), basis, Int)
-            M2 = spmatrix(SigmaPlus(i), basis, Int) * spmatrix(SigmaMinus(i+1), basis, Int)
+            M1 = spmatrix(SigmaPlusMinus(i,i+1), basis)
+            M2 = spmatrix(SigmaPlus(i), basis) * spmatrix(SigmaMinus(i+1), basis)
             @test M1 == M2
         end
     end
@@ -37,8 +37,8 @@ end
         
         basis =  AscendingTwoLevelBasis(4)
         for i in 1:3
-            M1 = spmatrix(SigmaPlusMinus(i,i+1), basis, Int)
-            M2 = spmatrix(SigmaPlus(i), basis, Int) * spmatrix(SigmaMinus(i+1), basis, Int)
+            M1 = spmatrix(SigmaPlusMinus(i,i+1), basis)
+            M2 = spmatrix(SigmaPlus(i), basis) * spmatrix(SigmaMinus(i+1), basis)
             @test M1 == M2
         end
     end
@@ -49,7 +49,7 @@ end
 
     @testset "NumberConservedBasis" begin
         
-        M = spmatrix(SigmaPlusMinus(1,2), NumberConservedBasis(4,2), Int)
+        M = spmatrix(SigmaPlusMinus(1,2), NumberConservedBasis(4,2))
         M_corr = spzeros(Int, 6,6)
         M_corr[4,2] = 1
         M_corr[5,3] = 1
@@ -59,47 +59,47 @@ end
 
     @testset "AscendingTwoLevelBasis" begin
         
-        M = spmatrix(SigmaPlusMinus(1,2), AscendingTwoLevelBasis(2), Int)
+        M = spmatrix(SigmaPlusMinus(1,2), AscendingTwoLevelBasis(2))
         M_corr = spzeros(Int, 4,4)
         M_corr[3,2] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(2,1), AscendingTwoLevelBasis(2), Int)
+        M = spmatrix(SigmaPlusMinus(2,1), AscendingTwoLevelBasis(2))
         M_corr = spzeros(Int, 4,4)
         M_corr[2,3] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(1,2), AscendingTwoLevelBasis(3), Int)
+        M = spmatrix(SigmaPlusMinus(1,2), AscendingTwoLevelBasis(3))
         M_corr = spzeros(Int, 8,8)
         M_corr[5,3] = 1
         M_corr[6,4] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(2,1), AscendingTwoLevelBasis(3), Int)
+        M = spmatrix(SigmaPlusMinus(2,1), AscendingTwoLevelBasis(3))
         M_corr = spzeros(Int, 8,8)
         M_corr[3,5] = 1
         M_corr[4,6] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(1,3), AscendingTwoLevelBasis(3), Int)
+        M = spmatrix(SigmaPlusMinus(1,3), AscendingTwoLevelBasis(3))
         M_corr = spzeros(Int, 8,8)
         M_corr[5,2] = 1
         M_corr[7,4] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(3,1), AscendingTwoLevelBasis(3), Int)
+        M = spmatrix(SigmaPlusMinus(3,1), AscendingTwoLevelBasis(3))
         M_corr = spzeros(Int, 8,8)
         M_corr[2,5] = 1
         M_corr[4,7] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(2,3), AscendingTwoLevelBasis(3), Int)
+        M = spmatrix(SigmaPlusMinus(2,3), AscendingTwoLevelBasis(3))
         M_corr = spzeros(Int, 8,8)
         M_corr[3,2] = 1
         M_corr[7,6] = 1
         @test M == M_corr
 
-        M = spmatrix(SigmaPlusMinus(3,2), AscendingTwoLevelBasis(3), Int)
+        M = spmatrix(SigmaPlusMinus(3,2), AscendingTwoLevelBasis(3))
         M_corr = spzeros(Int, 8,8)
         M_corr[2,3] = 1
         M_corr[6,7] = 1
@@ -117,21 +117,21 @@ end
         @testset "TensorBasis($L)" for L in [3,4,5]
             b = AscendingTwoLevelBasis(L)
             @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
-                @test spmatrix(SigmaPlusMinus(i,j),b, Int) == adjoint(spmatrix(SigmaPlusMinus(j,i),b, Int))
+                @test spmatrix(SigmaPlusMinus(i,j),b) == adjoint(spmatrix(SigmaPlusMinus(j,i),b))
             end
         end
 
         @testset "AscendingTwoLevelBasis($L)" for L in [3,4,5]
             b = AscendingTwoLevelBasis(L)
             @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
-                @test spmatrix(SigmaPlusMinus(i,j),b, Int) == adjoint(spmatrix(SigmaPlusMinus(j,i),b, Int))
+                @test spmatrix(SigmaPlusMinus(i,j),b) == adjoint(spmatrix(SigmaPlusMinus(j,i),b))
             end
         end
 
         @testset "NumberConservedBasis($L, $N)" for (L,N) in [(3,1), (4,2), (6,4)]
             b = NumberConservedBasis(L,N)
             @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
-                @test spmatrix(SigmaPlusMinus(i,j),b, Int) == adjoint(spmatrix(SigmaPlusMinus(j,i),b, Int))
+                @test spmatrix(SigmaPlusMinus(i,j),b) == adjoint(spmatrix(SigmaPlusMinus(j,i),b))
             end
         end
 
@@ -142,14 +142,14 @@ end
         @testset "AscendingTwoLevelBasis($L)" for L in [3,4,5]
             b = AscendingTwoLevelBasis(L)
             @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
-                @test spmatrix(SigmaMinusPlus(i,j),b, Int) == adjoint(spmatrix(SigmaMinusPlus(j,i),b, Int))
+                @test spmatrix(SigmaMinusPlus(i,j),b) == adjoint(spmatrix(SigmaMinusPlus(j,i),b))
             end
         end
         
         @testset "NumberConservedBasis($L, $N)" for (L,N) in [(3,1), (4,2), (6,4)]
             b = NumberConservedBasis(L,N)
             @testset "i=$i, j=$j" for i in 1:b.L, j in 1:b.L
-                @test spmatrix(SigmaMinusPlus(i,j),b, Int) == adjoint(spmatrix(SigmaMinusPlus(j,i),b, Int))
+                @test spmatrix(SigmaMinusPlus(i,j),b) == adjoint(spmatrix(SigmaMinusPlus(j,i),b))
             end
         end
     end

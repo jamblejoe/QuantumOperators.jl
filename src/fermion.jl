@@ -3,74 +3,77 @@
 """
 c_i^dagger
 """
-struct FermiCreationOperator <: AbstractOperator
+struct FermiCreationOperator{vT} <: AbstractOperator{vT}
     i::Int
+    FermiCreationOperator(i::Integer) = new{Int}(i)
 end
 
-function apply!(state::AbstractArray{<:Bool}, op::FermiCreationOperator, T::Type=Float64)
+function apply!(state::AbstractArray{<:Bool}, op::FermiCreationOperator{vT}) where {vT}
     i = op.i
-    state[i] == 1 && return zero(T)
+    isone(state[i]) && return zero(vT)
     state[i] = 1
     
     s = 0
     for l in 1:(i-1)
         s += state[l]
     end
-    return iseven(s) ? one(T) : -one(T)
+    return iseven(s) ? one(vT) : -one(vT)
 end
 
 """
 c_i
 """
-struct FermiAnnihilationOperator <: AbstractOperator
+struct FermiAnnihilationOperator{vT} <: AbstractOperator{vT}
     i::Int
+    FermiAnnihilationOperator(i::Integer) = new{Int}(i)
 end
 
-function apply!(state::AbstractArray{<:Bool}, op::FermiAnnihilationOperator, T::Type=Float64)
+function apply!(state::AbstractArray{<:Bool}, op::FermiAnnihilationOperator{vT}) where {vT}
     i = op.i
-    state[i] == 0 && return zero(T)
+    iszero(state[i]) && return zero(vT)
     state[i] = 0
     
     s = 0
     for l in 1:(i-1)
         s += state[l]
     end
-    return iseven(s) ? one(T) : -one(T)
+    return iseven(s) ? one(vT) : -one(vT)
 end
 
 
 """
 c_i^dagger c_i
 """
-struct FermiNumberOperator <: AbstractOperator
+struct FermiNumberOperator{vT} <: AbstractOperator{vT}
     i::Int
+    FermiNumberOperator(i::Integer) = new{Int}(i)
 end
 
-function apply!(state::AbstractArray{<:Bool}, op::FermiNumberOperator, T::Type=Float64)
+function apply!(state::AbstractArray{<:Bool}, op::FermiNumberOperator{vT}) where {vT}
     i = op.i
-    state[i] == 0 && return zero(T)
-    state[i] == 1 && return one(T)
+    iszero(state[i]) && return zero(vT)
+    isone(state[i])  && return one(vT)
 end
 
 """
 c_i^dagger c_j
 
 """
-struct FermiHoppingOperator <: AbstractOperator
+struct FermiHoppingOperator{vT} <: AbstractOperator{vT}
     i::Int
     j::Int
     function FermiHoppingOperator(i::Integer, j::Integer)
         i == j && throw(DomainError("Only different sites supported. Use FermiNumberOperator instead."))
-        new(i,j)
+        new{Int}(i,j)
     end
 end
 
-function apply!(state::AbstractArray{<:Bool}, op::FermiHoppingOperator, T::Type=Float64)
+function apply!(state::AbstractArray{<:Bool}, op::FermiHoppingOperator{vT}) where {vT}
     i = op.i
     j = op.j
 
-    state[i] == 1 && return zero(T)
-    state[j] == 0 && return zero(T)
+    isone(state[i])  && return zero(vT)
+    iszero(state[j]) && return zero(vT)
 
     state[i] = 1
     state[j] = 0
@@ -80,7 +83,7 @@ function apply!(state::AbstractArray{<:Bool}, op::FermiHoppingOperator, T::Type=
         s += state[l]
     end
 
-    return iseven(s) ? one(T) : -one(T)
+    return iseven(s) ? one(vT) : -one(vT)
 end
 
 
@@ -91,12 +94,14 @@ end
     of particles is odd.
 
 """
-struct ParityOperator <: AbstractOperator end
+struct ParityOperator{vT} <: AbstractOperator{vT} 
+    ParityOperator() = new{Int}()
+end
 
-function QuantumOperators.apply!(state::AbstractArray{<:Bool}, op::ParityOperator, T::Type=Float64)
+function QuantumOperators.apply!(state::AbstractArray{<:Bool}, op::ParityOperator{vT}) where {vT}
 	s = sum(state)
-	iseven(s) && return one(T)
-	isodd(s)  && return -one(T)
+	iseven(s) && return  one(vT)
+	isodd(s)  && return -one(vT)
 end
 
 

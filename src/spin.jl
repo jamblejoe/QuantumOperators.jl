@@ -12,7 +12,7 @@ Pauli matrices
 """
 
 
-struct SingleBodyOperator{T} <: AbstractOperator 
+struct SingleBodyOperator{vT, sT} <: AbstractOperator{vT}
     site::Int
 end
 
@@ -30,56 +30,53 @@ abstract type SigmaMinus <: AbstractOperator end
 #const SigmaZ = Operator{:Z}()
 #const SigmaPlus = Operator{:+}()
 #const SigmaMinus = Operator{:-}()
-SigmaX(i::Integer) = SingleBodyOperator{:X}(i)
-SigmaY(i::Integer) = SingleBodyOperator{:Y}(i)
-SigmaZ(i::Integer) = SingleBodyOperator{:Z}(i)
-SigmaPlus(i::Integer) = SingleBodyOperator{:+}(i)
-SigmaMinus(i::Integer) = SingleBodyOperator{:-}(i)
-
-Base.eltype(::SingleBodyOperator{:Y}) = ComplexF64
+SigmaX(i::Integer) = SingleBodyOperator{Int, :X}(i)
+SigmaY(i::Integer) = SingleBodyOperator{complex(Int), :Y}(i)
+SigmaZ(i::Integer) = SingleBodyOperator{Int, :Z}(i)
+SigmaPlus(i::Integer) = SingleBodyOperator{Int, :+}(i)
+SigmaMinus(i::Integer) = SingleBodyOperator{Int, :-}(i)
 
 
 
-
-function apply!(state::BitVector, op::SingleBodyOperator{:X}, T::Type=Float64)
+function apply!(state::BitVector, op::SingleBodyOperator{vT,:X}) where {vT}
     site = op.site
     state[site] = !state[site]
-    return one(T)
+    return one(vT)
 end
-function apply!(state::BitVector, op::SingleBodyOperator{:Y}, T::Type=Float64)
+function apply!(state::BitVector, op::SingleBodyOperator{vT,:Y}) where {vT}
     site = op.site
     s = state[site]
     state[site] = !s
-    return s ? -im : im
+    return s ? -one(vT)*im : one(vT)*im
 end
-function apply!(state::BitVector, op::SingleBodyOperator{:Z}, T::Type=Float64)
+function apply!(state::BitVector, op::SingleBodyOperator{vT,:Z}) where {vT}
     site = op.site
     s = state[site]
-    return s ? -one(T) : one(T)
+    return s ? -one(vT) : one(vT)
 end
 
-function apply!(state::BitVector, op::SingleBodyOperator{:+}, T::Type=Float64)
-    site = op.site
-    s = state[site]
-    state[site] = !state[site]
-    return s ? zero(T) : one(T)
-end
-function apply!(state::BitVector, op::SingleBodyOperator{:-}, T::Type=Float64)
+function apply!(state::BitVector, op::SingleBodyOperator{vT,:+}) where {vT}
     site = op.site
     s = state[site]
     state[site] = !state[site]
-    return s ? one(T) : zero(T)
+    return s ? zero(vT) : one(vT)
+end
+function apply!(state::BitVector, op::SingleBodyOperator{vT,:-}) where {vT}
+    site = op.site
+    s = state[site]
+    state[site] = !state[site]
+    return s ? one(vT) : zero(vT)
 end
 
-spmatrix(::SingleBodyOperator{:X}, T::Type=Float64) = sparse([zero(T) one(T); one(T) zero(T)])
-spmatrix(::SingleBodyOperator{:Y}, T::Type=ComplexF64) = sparse([zero(T) -im; im zero(T)])
-spmatrix(::SingleBodyOperator{:Z}, T::Type=Float64) = sparse([one(T) zero(T); zero(T) -one(T)])
-spmatrix(::SingleBodyOperator{:+}, T::Type=Float64) = sparse([zero(T) one(T); zero(T) zero(T)])
-spmatrix(::SingleBodyOperator{:-}, T::Type=Float64) = sparse([zero(T) zero(T); one(T) zero(T)])
+spmatrix(::SingleBodyOperator{vT,:X}) where {vT} = sparse(vT[0 1; 1 0])
+spmatrix(::SingleBodyOperator{vT,:Y}) where {vT} = sparse(vT[0 -im; im 0])
+spmatrix(::SingleBodyOperator{vT,:Z}) where {vT} = sparse(vT[1 0; 0 -1])
+spmatrix(::SingleBodyOperator{vT,:+}) where {vT} = sparse(vT[0 1; 0 0])
+spmatrix(::SingleBodyOperator{vT,:-}) where {vT} = sparse(vT[0 0; 1 0])
 
-struct TwoBodyOperator{T1, T2} <: AbstractOperator 
-    op1::SingleBodyOperator{T1}
-    op2::SingleBodyOperator{T2}
+struct TwoBodyOperator{vT,T1,T2} <: AbstractOperator{vT}
+    op1::SingleBodyOperator{vT,T1}
+    op2::SingleBodyOperator{vT,T2}
 end
 
 # the order is important when i=j
@@ -95,34 +92,34 @@ SigmaYY(i::Integer, j::Integer) = TwoBodyOperator(SigmaY(i), SigmaY(j))
 SigmaZZ(i::Integer, j::Integer) = TwoBodyOperator(SigmaZ(i), SigmaZ(j))
 
 # create a spin at site 1 and annihilate a spin at site 2
-function apply!(state::BitVector, op::TwoBodyOperator{:+, :-}, T::Type=Float64)
+function apply!(state::BitVector, op::TwoBodyOperator{vT, :+, :-}) where {vT}
     site1 = op.op1.site
     site2 = op.op2.site
 
     if site1 == site2
-        return state[site1] ? one(T) : zero(T)
+        return state[site1] ? one(vT) : zero(vT)
     else
         # returns true if and only if site 1 is empty and site 2 is occupied
         s = !state[site1] && state[site2]
-        state[site1] = 1
-        state[site2] = 0
-        return s ? one(T) : zero(T)
+        state[site1] = one(vT)
+        state[site2] = zero(vT)
+        return s ? one(vT) : zero(vT)
     end
 end
 
 # annihilate a spin at site 1 and create a spin at site 2
-function apply!(state::BitVector, op::TwoBodyOperator{:-,:+}, T::Type=Float64)
+function apply!(state::BitVector, op::TwoBodyOperator{vT,:-,:+}) where {vT}
     site1 = op.op1.site
     site2 = op.op2.site
 
     if site1 == site2
-        return state[site1] ? zero(T) : one(T)
+        return state[site1] ? zero(vT) : one(vT)
     else
         # returns true if and only if site 1 is occupied and site 2 is empty
         s = state[site1] && !state[site2]
-        state[site1] = 0
-        state[site2] = 1
-        return s ? one(T) : zero(T)
+        state[site1] = zero(vT)
+        state[site2] = one(vT)
+        return s ? one(vT) : zero(vT)
     end
 end
 
@@ -179,18 +176,18 @@ end
 ####################################################################
 
 
-function spmatrix(op::SingleBodyOperator, basis::TensorBasis, T::Type=Float64)
+function spmatrix(op::SingleBodyOperator, basis::TensorBasis)
     L = basis.L
     site_index = op.site
     1 <= site_index <= L || error("site must be in [1,$L], got $i")
 
-    m = spmatrix(op, T)
+    m = spmatrix(op)
     M = kron(I(2^(site_index-1)), m, I(2^(L-site_index)))
     M
 end
 
 
-function spmatrix(op::TwoBodyOperator, basis::TensorBasis, T::Type=Float64)
+function spmatrix(op::TwoBodyOperator, basis::TensorBasis)
     L = basis.L
     op1 = op.op1
     op2 = op.op2
@@ -201,8 +198,8 @@ function spmatrix(op::TwoBodyOperator, basis::TensorBasis, T::Type=Float64)
     1 <= site2 <= L || error("site2 must be in [1,$L], got $(site2)")
 
 
-    m1 = spmatrix(op1, T)
-    m2 = spmatrix(op2, T)
+    m1 = spmatrix(op1)
+    m2 = spmatrix(op2)
 
     M = nothing
     if site1 < site2
